@@ -10,9 +10,16 @@ own code.
   matching the method surface of nisaba's own embedded `Collection`/`Db`.
 - `ClientChangeStream` — `watch()` change-stream subscriptions over a
   single multiplexed WebSocket connection.
-- `ObjectId`/`Pointer` — re-exported from nisaba's own WASM wrapper (not
-  a separate copy), so values constructed here and values produced by the
-  embedded API are interchangeable.
+- `ObjectId`/`Pointer` — re-exported from
+  [`binjson`](https://github.com/mdy-docs/binjson) (this package's own
+  submodule dependency), not the whole `nisaba` document-database engine —
+  `ObjectId`/`Pointer` are codec-layer value types, not database-layer
+  ones, and binjson's plain-JS module needs no compiled WASM/Emscripten
+  build step to use them. A value constructed here is technically a
+  different module instance than nisaba's own internal `ObjectId` copy
+  (nisaba keeps its own self-contained copy of binjson by design), but
+  nisaba's own `toObjectId()`/`writeValue()` duck-type rather than doing a
+  strict `instanceof` check, specifically to tolerate that.
 - Extended JSON (`encode`/`decode`) — the wire format for
   `ObjectId`/`Date`/binary/`Pointer` values crossing the REST/WebSocket
   boundary.
@@ -32,14 +39,9 @@ npm install
 (If you already cloned without `--recurse-submodules`:
 `git submodule update --init --recursive`.)
 
-The engine's compiled WASM artifact (`third_party/nisaba/wasm/lib/`) isn't
-checked into that submodule and isn't built by `npm install` — build it
-once with the [Emscripten SDK](https://emscripten.org/) (`emcc`) on your
-`PATH`:
-
-```bash
-npm run --prefix third_party/nisaba build:wasm
-```
+That's it — no compiled WASM artifact, no Emscripten SDK. `binjson`'s
+plain-JS module (`third_party/binjson/js/binjson.js`) is synchronous,
+dependency-free, and needs no build step.
 
 ### Run the tests
 

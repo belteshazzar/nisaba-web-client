@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { ready } from '../third_party/nisaba/wasm/nisaba-wasm.js';
-import { ObjectId, Pointer } from '../third_party/nisaba/wasm/nisaba-wasm.js';
+import { ObjectId, Pointer } from '../third_party/binjson/js/binjson.js';
 import { encode, decode } from '../extended-json.js';
-
-await ready();
 
 describe('extended-json', () => {
   it('round-trips a document with every wrapped type through real JSON.stringify/parse', () => {

@@ -19,13 +19,15 @@
  * it composes with JSON.parse/JSON.stringify: `decode(JSON.parse(text))`
  * and `JSON.stringify(encode(value))`.
  */
-// Sourced from nisaba's own WASM wrapper, not a separate third_party/binjson
-// copy: nisaba-web's service/rest-gateway.js and service/websocket-gateway.js
-// feed decode()'s output straight into Collection methods (insertOne, etc.),
-// whose internal encode() does `instanceof ObjectId` against nisaba's own
-// class -- a value built from a different (even source-identical) copy
-// would silently fail that check.
-import { ObjectId, Pointer } from './third_party/nisaba/wasm/nisaba-wasm.js';
+// ObjectId/Pointer come from this package's own binjson submodule, not
+// nisaba's -- nisaba-web's service/rest-gateway.js and
+// service/websocket-gateway.js feed decode()'s output straight into
+// Collection methods (insertOne, etc.), whose internal toObjectId()/
+// writeValue() duck-type (accept anything shaped like an ObjectId, not
+// just strict `instanceof`) specifically to tolerate that this is a
+// different module instance than nisaba's own internal ObjectId copy --
+// see nisaba's own wasm/nisaba-wasm.js for the matching half of this.
+import { ObjectId, Pointer } from './third_party/binjson/js/binjson.js';
 
 /** JS value (possibly containing ObjectId/Date/Pointer/Uint8Array) -> plain JSON-safe value. */
 function encode(value) {

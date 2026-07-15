@@ -20,20 +20,34 @@
  * and `JSON.stringify(encode(value))`.
  */
 // ObjectId/Pointer come from this package's own binjson submodule, not
-// nisaba's -- nisaba-web's service/rest-gateway.js and
-// service/websocket-gateway.js feed decode()'s output straight into
-// Collection methods (insertOne, etc.), whose internal toObjectId()/
-// writeValue() duck-type (accept anything shaped like an ObjectId, not
-// just strict `instanceof`) specifically to tolerate that this is a
-// different module instance than nisaba's own internal ObjectId copy --
-// see nisaba's own wasm/nisaba-wasm.js for the matching half of this.
+// nisaba's. That cuts both ways across the wire:
+//   - decode() constructs values the *server* then hands to nisaba's
+//     Collection methods (insertOne, etc.) -- nisaba's own toObjectId()/
+//     writeValue() duck-type (accept anything shaped like an ObjectId, not
+//     just strict `instanceof`) specifically to tolerate that.
+//   - encode() has to handle the *reverse* direction too: any value read
+//     back from the engine (an auto-generated _id, or any ObjectId-typed
+//     field in a stored document) is nisaba's own internal ObjectId
+//     instance, not this file's. Strict `instanceof ObjectId` here would
+//     silently fail to recognize it and mis-encode it as a plain object
+//     instead of `{ $oid: ... }` -- so encode() duck-types too, the exact
+//     mirror of nisaba's own fix.
+// See nisaba's own wasm/nisaba-wasm.js for the matching server-side half.
 import { ObjectId, Pointer } from './third_party/binjson/js/binjson.js';
+
+function isObjectIdLike(value) {
+  return value instanceof ObjectId || (value && typeof value.toHexString === 'function' && typeof value.toBytes === 'function');
+}
+
+function isPointerLike(value) {
+  return value instanceof Pointer || (value && typeof value.offset === 'number' && value.constructor?.name === 'Pointer');
+}
 
 /** JS value (possibly containing ObjectId/Date/Pointer/Uint8Array) -> plain JSON-safe value. */
 function encode(value) {
-  if (value instanceof ObjectId) return { $oid: value.toHexString() };
+  if (isObjectIdLike(value)) return { $oid: value.toHexString() };
   if (value instanceof Date) return { $date: value.toISOString() };
-  if (value instanceof Pointer) return { $pointer: String(value.offset) };
+  if (isPointerLike(value)) return { $pointer: String(value.offset) };
   if (value instanceof Uint8Array) return { $binary: { base64: Buffer.from(value).toString('base64'), subType: '00' } };
   if (Array.isArray(value)) return value.map(encode);
   if (value && typeof value === 'object') {

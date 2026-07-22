@@ -74,6 +74,23 @@ const stream = users.watch();
 stream.on('change', (event) => console.log(event));
 ```
 
+## Command line
+
+The package ships `nisaba-cloud` ([`bin/nisaba-cloud.md`](bin/nisaba-cloud.md)) —
+the local `db` CLI's grammar (nisaba's `bin/db.md`) pointed at the cloud
+service, scoped to what the web API offers:
+
+```bash
+export NISABA_API_KEY=sk_...
+nisaba-cloud mydb insert users '{"name":"Ada"}'
+nisaba-cloud mydb find users '{"name":"Ada"}'
+nisaba-cloud mydb watch users
+
+# the gateway defaults to https://api.nisaba.cloud; point NISABA_URL
+# elsewhere to test against a local stack
+export NISABA_URL=http://127.0.0.1:8087
+```
+
 ## License
 
 BSD 2-Clause License

@@ -4,6 +4,9 @@
   "description": "MongoDB-driver-shaped client for the nisaba-web cloud service (REST + WebSocket change streams)",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "nisaba-cloud": "bin/nisaba-cloud.js"
+  },
   "exports": {
     ".": "./index.js"
   },
